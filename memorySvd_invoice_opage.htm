@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculator BY Saria Hamza</title>
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f1f1f1;
+  padding: 0;
+  margin: 0;
+}
+
+.calculator {
+  max-width: 600px;
+  margin: 50px auto;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 5px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 10px;
+}
+
+table, th, td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+th {
+  background-color: #f2f2f2;
+}
+
+input[type="text"], button {
+  padding: 5px;
+  margin: 5px;
+}
+
+button {
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer; 
+}
+
+.delBtn {
+  background-color: red;
+  color: #red;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+.delBtn:hover {
+  background-color: #b30000;
+}
+#totalPrice {
+  font-size: 18px;
+  font-weight: bold;
+  margin-top: 10px;
+}
+.invoice-details {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.invoice-details div {
+  flex: 1;
+}
+@media print {
+  button, 
+  th:last-child, td:last-child,  
+  input,label
+  {display: none;}
+  }
+  .footer {
+    margin-top: 20px;
+    text-align: center;
+    font-size: 12px;
+    color: #333; /* Dark gray text color */
+  }
+  .opage {
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: #000000;
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  animation: opage 7s linear forwards ;
+}
+.opage div {
+    margin: 50vw auto;
+  color: rgb(255, 255, 255, 80%);
+  width: 0;
+  height: fit-content;
+  font-size: 1rem;
+  text-transform: capitalize;
+  border-right: 1px solid rgb(255, 255,   255, 80%);
+  white-space: nowrap;
+  overflow: hidden;
+  animation: typing 1.6s 2s both      steps(36), blinking .5s infinite        linear;
+}
+@keyframes typing {
+  from {
+    width: 0;
+  }
+  to {
+    width: 300px;
+  }
+}
+@keyframes blinking {
+  from {
+    border-right: 1px solid rgb(255, 255, 255, 80%);
+  }
+  to {
+    border-right: 1px solid     transparent;
+  }
+}
+@keyframes opage {
+  0%, 99% {
+    display: flex;
+  }
+  100% {
+    display: none;
+  }
+}
+</style>
+</head>
+<body>
+<div class="opage"><div>Tool Developed By SARIA HAMZA © 2024</div></div>
+<div class="calculator">
+   <div class="invoice-details">
+            <div>
+                <strong>الرقم:</strong> <span contenteditable="true">001</span><br>
+				<strong>الاسم:</strong> <span contenteditable="true">001</span><br>
+                <strong>التاريخ:</strong> <span contenteditable="true">28 فبراير 2024</span><br>
+                <strong>التفاصيل:</strong> <span contenteditable="true">تفاصيل الفاتورة</span>
+            </div>
+            <div>
+                <strong>المستلم:</strong><br>
+                <span contenteditable="true">اسم المستلم</span><br>
+                <span contenteditable="true">العنوان</span><br>
+                <span contenteditable="true">المدينة، البلد</span>
+            </div>
+        </div>
+  <input type="text" id="minuteCost" placeholder="Cost Per Minute" oninput="updatePrices()">
+  <table id="videosTable">
+    <tr>
+      <th>Video</th>
+      <th>Name</th>
+      <th>Minutes</th>
+      <th>Seconds</th>
+      <th>Price</th>
+      <th>Action</th>
+    </tr>
+  </table>
+  <label for="name">Video Name:</label>
+  <input type="text" id="name" placeholder="Name">
+  <input type="text" id="minutes" placeholder="Minutes">
+  <input type="text" id="seconds" placeholder="Seconds">
+  <button onclick="addVideo()">Add</button>
+  <button class="delBtn" onclick="confirmDelete()">Delete All</button>
+
+  <p id="totalPrice"></p>
+  <div class="footer"> <span style="color: #03a9f4;">VideoCalc V1.5</span> Developed By <a href="https://loyalshop.net/wp-content/uploads/2024/03/Saria-Hamza_CV_EN-2.html" target="_blank" style="text-decoration: none;">© Saria Hamza</a> 2024
+  </div>
+</div>
+<script>
+var videos = [];
+var costPerMinute = 0; 
+
+window.addEventListener('load', function() {
+  var savedVideos = localStorage.getItem('videos');
+  if (savedVideos) {
+    videos = JSON.parse(savedVideos);
+    renderVideosTable();
+    calculateTotalPrice();
+  }
+});
+
+function addVideo() {
+  var name = document.getElementById('name').value;
+  var minutes = parseInt(document.getElementById('minutes').value) || 0;
+  var seconds = parseInt(document.getElementById('seconds').value) || 0;
+  var totalSeconds = minutes * 60 + seconds;
+  var price = totalSeconds / 60 * costPerMinute;
+
+  videos.push({ name: name, minutes: minutes, seconds: seconds, price: price });
+  renderVideosTable();
+  calculateTotalPrice();
+
+  localStorage.setItem('videos', JSON.stringify(videos));
+
+  document.getElementById('name').value = '';
+  document.getElementById('minutes').value = '';
+  document.getElementById('seconds').value = '';
+}
+
+function deleteVideo(index) {
+  var deletedVideo = videos.splice(index, 1)[0];
+  renderVideosTable();
+  calculateTotalPrice();
+
+  localStorage.setItem('videos', JSON.stringify(videos));
+}
+
+function deleteAllVideos() {
+  videos = [];
+  renderVideosTable();
+  calculateTotalPrice();
+
+  localStorage.setItem('videos', JSON.stringify(videos));
+}
+
+function renderVideosTable() {
+  var table = document.getElementById('videosTable');
+  table.innerHTML = `
+    <tr>
+      <th>#</th>
+      <th>Name</th>
+      <th>Minutes</th>
+      <th>Seconds</th>
+      <th>Price</th>
+      <th>Action</th>
+    </tr>
+  `;
+
+  videos.forEach((video, index) => {
+    var newRow = table.insertRow(-1);
+
+    var cellVideo = newRow.insertCell(0);
+    var cellName = newRow.insertCell(1);
+    var cellMinutes = newRow.insertCell(2);
+    var cellSeconds = newRow.insertCell(3);
+    var cellPrice = newRow.insertCell(4);
+    var cellAction = newRow.insertCell(5);
+
+    cellVideo.innerHTML = index + 1;
+    cellName.innerHTML = video.name;
+    cellMinutes.innerHTML = video.minutes;
+    cellSeconds.innerHTML = video.seconds;
+    cellPrice.innerHTML = '$' + video.price.toFixed(2);
+    cellAction.innerHTML = `<button onclick="deleteVideo(${index})">Delete</button>`;
+  });
+}
+
+function calculateTotalPrice() {
+  var totalPrice = videos.reduce((acc, video) => acc + video.price, 0);
+  document.getElementById('totalPrice').innerText = 'Total Price: $' + totalPrice.toFixed(2);
+}
+
+function updatePrices() {
+  costPerMinute = parseFloat(document.getElementById('minuteCost').value) || 0;
+  videos.forEach(video => {
+    video.price = (video.minutes * 60 + video.seconds) / 60 * costPerMinute;
+  });
+  renderVideosTable();
+  calculateTotalPrice();
+}
+function confirmDelete() {
+  if (confirm('Are you sure you want to delete all videos?')) {
+    deleteAllVideos();
+  }
+}
+
+</script>
+</body>
+</html>

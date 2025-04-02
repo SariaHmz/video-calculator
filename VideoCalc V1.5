@@ -1,281 +1,314 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Calculator BY Saria Hamza</title>
-<style>
-body {
-  font-family: Arial, sans-serif;
-  background-color: #f1f1f1;
-  padding: 0;
-  margin: 0;
-}
+// ==UserScript==
+// @name         WhatsApp Web Auto Sender
+// @namespace    http://tampermonkey.net/
+// @version      1.0
+// @description  Automatically send messages to multiple WhatsApp numbers
+// @author       @Saria Hmz
+// @match        https://web.whatsapp.com/*
+// @grant        none
+// ==/UserScript==
 
-.calculator {
-  max-width: 600px;
-  margin: 50px auto;
-  padding: 20px;
-  background-color: #fff;
-  border-radius: 5px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-}
+(function() {
+    'use strict';
 
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 10px;
-}
+    // Create UI elements
+    function createUI() {
+        // Add custom fonts
+        const fontLink = document.createElement('link');
+        fontLink.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap';
+        fontLink.rel = 'stylesheet';
+        document.head.appendChild(fontLink);
 
-table, th, td {
-  border: 1px solid #ddd;
-  padding: 8px;
-  text-align: left;
-}
+        // Create the main button that matches WhatsApp's design
+        const mainButton = document.createElement('button');
+        mainButton.className = 'x78zum5 x6s0dn4 x1afcbsf x1heor9g x1y1aw1k x1sxyh0 xwib8y2 xurb0ha';
+        mainButton.setAttribute('role', 'button');
+        mainButton.setAttribute('tabindex', '0');
+        mainButton.setAttribute('title', 'Auto Sender');
+        mainButton.innerHTML = `
+            <span aria-hidden="true" data-icon="auto-sender" class="">
+                <svg viewBox="0 0 24 24" height="24" width="24" preserveAspectRatio="xMidYMid meet" class="" fill="none">
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 20C7.58 20 4 16.42 4 12C4 7.58 7.58 4 12 4C16.42 4 20 7.58 20 12C20 16.42 16.42 20 12 20ZM16 11H13V8C13 7.45 12.55 7 12 7C11.45 7 11 7.45 11 8V11H8C7.45 11 7 11.45 7 12C7 12.55 7.45 13 8 13H11V16C11 16.55 11.45 17 12 17C12.55 17 13 16.55 13 16V13H16C16.55 13 17 12.55 17 12C17 11.45 16.55 11 16 11Z" fill="currentColor"/>
+                </svg>
+            </span>
+        `;
 
-th {
-  background-color: #f2f2f2;
-}
+        // Create the sliding panel
+        const panel = document.createElement('div');
+        panel.style.cssText = `
+            position: fixed;
+            top: 0;
+            right: -350px;
+            width: 320px;
+            height: 100vh;
+            background: rgb(32, 44, 51);
+            padding: 20px;
+            z-index: 999;
+            transition: transform 0.3s ease;
+            box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
+            color: white;
+            font-family: 'Inter', sans-serif;
+        `;
 
-input[type="text"], button {
-  padding: 5px;
-  margin: 5px;
-}
+        // Add title
+        const title = document.createElement('h2');
+        title.textContent = 'WhatsApp Auto Sender';
+        title.style.cssText = `
+            margin: 0 0 20px 0;
+            color: #fff;
+            font-size: 16px;
+            font-weight: 600;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        `;
 
-button {
-  background-color: #007bff;
-  color: #fff;
-  border: none;
-  border-radius: 3px;
-  cursor: pointer; 
-}
+        const textarea = document.createElement('textarea');
+        textarea.id = 'phone-numbers';
+        textarea.placeholder = 'Enter phone numbers (one per line)';
+        textarea.style.cssText = `
+            width: 100%;
+            height: 150px;
+            margin-bottom: 15px;
+            padding: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            resize: none;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        `;
 
-.delBtn {
-  background-color: red;
-  color: #red;
-  border: none;
-  border-radius: 3px;
-  cursor: pointer;
-}
+        const messageInput = document.createElement('input');
+        messageInput.id = 'message-text';
+        messageInput.type = 'text';
+        messageInput.placeholder = 'Enter message';
+        messageInput.style.cssText = `
+            width: 100%;
+            margin-bottom: 15px;
+            padding: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        `;
 
-button:hover {
-  background-color: #0056b3;
-}
-.delBtn:hover {
-  background-color: #b30000;
-}
-#totalPrice {
-  font-size: 18px;
-  font-weight: bold;
-  margin-top: 10px;
-}
-.invoice-details {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 20px;
-}
+        // Create status counter
+        const statusDiv = document.createElement('div');
+        statusDiv.id = 'status-counter';
+        statusDiv.style.cssText = `
+            margin-bottom: 15px;
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.7);
+            text-align: center;
+            display: none;
+        `;
 
-.invoice-details div {
-  flex: 1;
-}
-@media print {
-  button, 
-  th:last-child, td:last-child,  
-  input,label
-  {display: none;}
-  }
-  .footer {
-    margin-top: 20px;
-    text-align: center;
-    font-size: 12px;
-    color: #333; /* Dark gray text color */
-  }
-  .opage {
-  top: 0;
-  width: 100vw;
-  height: 100vh;
-  background-color: #000000;
-  position: absolute;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  animation: opage 7s linear forwards ;
-}
-.opage div {
-    margin: 50vw auto;
-  color: rgb(255, 255, 255, 80%);
-  width: 0;
-  height: fit-content;
-  font-size: 1rem;
-  text-transform: capitalize;
-  border-right: 1px solid rgb(255, 255,   255, 80%);
-  white-space: nowrap;
-  overflow: hidden;
-  animation: typing 1.6s 2s both      steps(36), blinking .5s infinite        linear;
-}
-@keyframes typing {
-  from {
-    width: 0;
-  }
-  to {
-    width: 300px;
-  }
-}
-@keyframes blinking {
-  from {
-    border-right: 1px solid rgb(255, 255, 255, 80%);
-  }
-  to {
-    border-right: 1px solid     transparent;
-  }
-}
-@keyframes opage {
-  0%, 99% {
-    display: flex;
-  }
-  100% {
-    display: none;
-  }
-}
-</style>
-</head>
-<body>
-<div class="opage"><div>Tool Developed By SARIA HAMZA © 2024</div></div>
-<div class="calculator">
-   <div class="invoice-details">
-            <div>
-                <strong>الرقم:</strong> <span contenteditable="true">001</span><br>
-				<strong>الاسم:</strong> <span contenteditable="true">001</span><br>
-                <strong>التاريخ:</strong> <span contenteditable="true">28 فبراير 2024</span><br>
-                <strong>التفاصيل:</strong> <span contenteditable="true">تفاصيل الفاتورة</span>
-            </div>
-            <div>
-                <strong>المستلم:</strong><br>
-                <span contenteditable="true">اسم المستلم</span><br>
-                <span contenteditable="true">العنوان</span><br>
-                <span contenteditable="true">المدينة، البلد</span>
-            </div>
-        </div>
-  <input type="text" id="minuteCost" placeholder="Cost Per Minute" oninput="updatePrices()">
-  <table id="videosTable">
-    <tr>
-      <th>Video</th>
-      <th>Name</th>
-      <th>Minutes</th>
-      <th>Seconds</th>
-      <th>Price</th>
-      <th>Action</th>
-    </tr>
-  </table>
-  <label for="name">Video Name:</label>
-  <input type="text" id="name" placeholder="Name">
-  <input type="text" id="minutes" placeholder="Minutes">
-  <input type="text" id="seconds" placeholder="Seconds">
-  <button onclick="addVideo()">Add</button>
-  <button class="delBtn" onclick="confirmDelete()">Delete All</button>
+        const button = document.createElement('button');
+        button.textContent = 'Send Messages';
+        button.style.cssText = `
+            background: #00a884;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            font-family: 'Inter', sans-serif;
+            font-weight: 500;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        `;
 
-  <p id="totalPrice"></p>
-  <div class="footer"> <span style="color: #03a9f4;">VideoCalc V1.5</span> Developed By <a href="https://loyalshop.net/wp-content/uploads/2024/03/Saria-Hamza_CV_EN-2.html" target="_blank" style="text-decoration: none;">© Saria Hamza</a> 2024
-  </div>
-</div>
-<script>
-var videos = [];
-var costPerMinute = 0; 
+        // Add hover effects
+        button.onmouseover = () => {
+            button.style.background = '#02916f';
+        };
+        button.onmouseout = () => {
+            button.style.background = '#00a884';
+        };
 
-window.addEventListener('load', function() {
-  var savedVideos = localStorage.getItem('videos');
-  if (savedVideos) {
-    videos = JSON.parse(savedVideos);
-    renderVideosTable();
-    calculateTotalPrice();
-  }
-});
+        // Add focus effects for inputs
+        [textarea, messageInput].forEach(input => {
+            input.onfocus = () => {
+                input.style.borderColor = '#00a884';
+                input.style.background = 'rgba(255, 255, 255, 0.15)';
+            };
+            input.onblur = () => {
+                input.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+                input.style.background = 'rgba(255, 255, 255, 0.1)';
+            };
+        });
 
-function addVideo() {
-  var name = document.getElementById('name').value;
-  var minutes = parseInt(document.getElementById('minutes').value) || 0;
-  var seconds = parseInt(document.getElementById('seconds').value) || 0;
-  var totalSeconds = minutes * 60 + seconds;
-  var price = totalSeconds / 60 * costPerMinute;
+        button.onclick = () => {
+            statusDiv.style.display = 'block';
+            startSending();
+        };
 
-  videos.push({ name: name, minutes: minutes, seconds: seconds, price: price });
-  renderVideosTable();
-  calculateTotalPrice();
+        panel.appendChild(title);
+        panel.appendChild(textarea);
+        panel.appendChild(messageInput);
+        panel.appendChild(statusDiv);
+        panel.appendChild(button);
+        document.body.appendChild(panel);
 
-  localStorage.setItem('videos', JSON.stringify(videos));
+        // Toggle panel visibility
+        let isPanelVisible = false;
+        mainButton.onclick = () => {
+            isPanelVisible = !isPanelVisible;
+            panel.style.transform = isPanelVisible ? 'translateX(-350px)' : 'translateX(0)';
+            mainButton.style.background = isPanelVisible ? 'rgba(255, 255, 255, 0.1)' : '';
+        };
 
-  document.getElementById('name').value = '';
-  document.getElementById('minutes').value = '';
-  document.getElementById('seconds').value = '';
-}
+        // Watch for the navigation buttons container and add our button
+        const observer = new MutationObserver((mutations, obs) => {
+            const container = document.querySelector('.x1c4vz4f.xs83m0k.xdl72j9.x1g77sc7.xeuugli.x2lwn1j.xozqiw3.x1oa3qoh.x12fk4p8');
+            if (container) {
+                const buttonWrapper = document.createElement('div');
+                buttonWrapper.className = '_ajv7 x1n2onr6 x1okw0bk x5yr21d x14yjl9h xudhj91 x18nykt9 xww2gxu xlkovuz x16j0l1c xyklrzc x1mh8g0r x1anpbxc x18wx58x xo92w5m';
+                buttonWrapper.appendChild(mainButton);
+                container.appendChild(buttonWrapper);
+                obs.disconnect();
+            }
+        });
 
-function deleteVideo(index) {
-  var deletedVideo = videos.splice(index, 1)[0];
-  renderVideosTable();
-  calculateTotalPrice();
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+    }
 
-  localStorage.setItem('videos', JSON.stringify(videos));
-}
+    // Helper function to wait for element
+    function waitForElement(selector, timeout = 5000) {
+        return new Promise((resolve, reject) => {
+            const startTime = Date.now();
 
-function deleteAllVideos() {
-  videos = [];
-  renderVideosTable();
-  calculateTotalPrice();
+            const interval = setInterval(() => {
+                const element = document.querySelector(selector);
+                if (element) {
+                    clearInterval(interval);
+                    resolve(element);
+                } else if (Date.now() - startTime > timeout) {
+                    clearInterval(interval);
+                    reject(new Error(`Element ${selector} not found`));
+                }
+            }, 100);
+        });
+    }
 
-  localStorage.setItem('videos', JSON.stringify(videos));
-}
+    // Function to simulate click
+    function simulateClick(element) {
+        element.click();
+    }
 
-function renderVideosTable() {
-  var table = document.getElementById('videosTable');
-  table.innerHTML = `
-    <tr>
-      <th>#</th>
-      <th>Name</th>
-      <th>Minutes</th>
-      <th>Seconds</th>
-      <th>Price</th>
-      <th>Action</th>
-    </tr>
-  `;
+    // Function to simulate typing
+    async function simulateTyping(element, text) {
+        // Wait for the contenteditable div to be ready
+        await new Promise(resolve => setTimeout(resolve, 500));
 
-  videos.forEach((video, index) => {
-    var newRow = table.insertRow(-1);
+        // Find the contenteditable div inside the message container
+        const contentEditableDiv = element.querySelector('div[contenteditable="true"][role="textbox"]');
+        if (!contentEditableDiv) return;
 
-    var cellVideo = newRow.insertCell(0);
-    var cellName = newRow.insertCell(1);
-    var cellMinutes = newRow.insertCell(2);
-    var cellSeconds = newRow.insertCell(3);
-    var cellPrice = newRow.insertCell(4);
-    var cellAction = newRow.insertCell(5);
+        // Focus the element
+        contentEditableDiv.focus();
 
-    cellVideo.innerHTML = index + 1;
-    cellName.innerHTML = video.name;
-    cellMinutes.innerHTML = video.minutes;
-    cellSeconds.innerHTML = video.seconds;
-    cellPrice.innerHTML = '$' + video.price.toFixed(2);
-    cellAction.innerHTML = `<button onclick="deleteVideo(${index})">Delete</button>`;
-  });
-}
+        // Create and dispatch keyboard events
+        const keyboardEvent = new KeyboardEvent('keydown', {
+            key: 'a',
+            code: 'KeyA',
+            bubbles: true
+        });
+        contentEditableDiv.dispatchEvent(keyboardEvent);
 
-function calculateTotalPrice() {
-  var totalPrice = videos.reduce((acc, video) => acc + video.price, 0);
-  document.getElementById('totalPrice').innerText = 'Total Price: $' + totalPrice.toFixed(2);
-}
+        // Set text content with the correct class structure
+        contentEditableDiv.innerHTML = `<p class="selectable-text copyable-text x15bjb6t x1n2onr6" style="text-indent: 0px; margin-top: 0px; margin-bottom: 0px;">${text}</p>`;
 
-function updatePrices() {
-  costPerMinute = parseFloat(document.getElementById('minuteCost').value) || 0;
-  videos.forEach(video => {
-    video.price = (video.minutes * 60 + video.seconds) / 60 * costPerMinute;
-  });
-  renderVideosTable();
-  calculateTotalPrice();
-}
-function confirmDelete() {
-  if (confirm('Are you sure you want to delete all videos?')) {
-    deleteAllVideos();
-  }
-}
+        // Dispatch input event
+        const inputEvent = new InputEvent('input', {
+            bubbles: true,
+            cancelable: true,
+            inputType: 'insertText',
+            data: text
+        });
+        contentEditableDiv.dispatchEvent(inputEvent);
 
-</script>
-</body>
-</html>
+        // Wait to ensure events are processed
+        await new Promise(resolve => setTimeout(resolve, 500));
+    }
+
+    // Main function to process numbers
+    async function startSending() {
+        const numbers = document.getElementById('phone-numbers').value.split('\n').filter(n => n.trim());
+        const message = document.getElementById('message-text').value;
+        const statusDiv = document.getElementById('status-counter');
+        const button = statusDiv.nextElementSibling;
+        let successCount = 0;
+
+        button.disabled = true;
+        button.style.opacity = '0.7';
+        button.textContent = 'Sending...';
+
+        for (let i = 0; i < numbers.length; i++) {
+            const number = numbers[i];
+            statusDiv.textContent = `Processing: ${i + 1}/${numbers.length} (${successCount} sent)`;
+
+            try {
+                // Click new chat button
+                const newChatButton = await waitForElement('#startNonContactChat');
+                simulateClick(newChatButton);
+
+                // Wait for and fill phone number input
+                const phoneInput = await waitForElement('.alerty-prompt input');
+                phoneInput.value = number.trim();
+                phoneInput.dispatchEvent(new Event('input', { bubbles: true }));
+
+                // Click chat button
+                const chatButton = await waitForElement('.btn-ok');
+                simulateClick(chatButton);
+
+                // Wait for chat to load
+                await new Promise(resolve => setTimeout(resolve, 450));
+
+                // Wait for message input container and type message
+                const messageContainer = await waitForElement('.x9f619.x12lumcd.x1qrby5j');
+                await simulateTyping(messageContainer, message);
+
+                // Wait for send button to become active
+                await new Promise(resolve => setTimeout(resolve, 100));
+
+                // Click send button
+                const sendButton = await waitForElement('button[aria-label="Send"]');
+                simulateClick(sendButton);
+
+                // Wait before processing next number
+                await new Promise(resolve => setTimeout(resolve, 500));
+
+                successCount++;
+            } catch (error) {
+                console.error(`Error processing number ${number}:`, error);
+                continue;
+            }
+        }
+
+        statusDiv.textContent = `Completed: ${successCount}/${numbers.length} messages sent successfully`;
+        button.disabled = false;
+        button.style.opacity = '1';
+        button.textContent = 'Send Messages';
+    }
+
+    // Initialize when page is ready
+    window.addEventListener('load', () => {
+        setTimeout(createUI, 3000); // Wait for WhatsApp Web to load
+    });
+})();
